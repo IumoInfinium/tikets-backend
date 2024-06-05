@@ -1,9 +1,8 @@
-use std::default;
-
 use crate::store::TicketId;
 
 use serde::{Serialize, Deserialize};
 
+// Schema of the ticket in the database
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Ticket {
     pub id: TicketId,
@@ -12,24 +11,28 @@ pub struct Ticket {
     pub status: TicketStatus,
 }
 
+// Schema of the ticket before the actual creation
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TicketDraft {
     pub title: TicketTitle,
     pub description: TicketDescription
 }
 
+// Schema of the updating the existing Ticket
 pub struct TicketTemplate {
     pub title: Option<TicketTitle>,
     pub description: Option<TicketDescription>,
     pub status: Option<TicketStatus>
 }
+
+
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TicketTitle(pub String);
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TicketDescription(pub String);
 
-// different states a ticket can be on
+// States, a ticket can be in
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum TicketStatus {
     Todo,
@@ -54,7 +57,7 @@ pub enum Errors {
     GetError,
     #[error("Failed to create the value")]
     CreateError,
-    #[error("Failed to update the value")]
+    #[error("Failed to update")]
     UpdateError,
     #[error("Status is unparseable")]
     StatusUnParseable,
@@ -96,7 +99,6 @@ impl TryFrom<&str> for TicketDescription {
     }
 }
 
-
 // validates the title on 3 conditions, with () and fail on Err
 fn validate_title(title: &str) -> Result<(), TicketContentError> {
     if title.is_empty() {
@@ -123,6 +125,7 @@ fn validate_description(description: &str) -> Result<(), TicketContentError> {
     }
 }
 
+// Parse the input status string, to `TicketStatus` for easier use 
 pub fn identify_status(status: String) -> Result<TicketStatus, Errors> {
     match status.to_lowercase().as_str() {
         "todo" => Ok(TicketStatus::Todo),
