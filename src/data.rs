@@ -1,5 +1,8 @@
 use crate::store::TicketId;
 
+use serde::{Serialize, Deserialize};
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Ticket {
     pub id: TicketId,
     pub title: TicketTitle,
@@ -7,15 +10,21 @@ pub struct Ticket {
     pub status: TicketStatus,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TicketDraft {
     pub title: TicketTitle,
     pub description: TicketDescription
 }
 
-pub struct TicketTitle(String);
-pub struct TicketDescription(String);
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct TicketTitle(pub String);
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct TicketDescription(pub String);
 
 // different states a ticket can be on
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum TicketStatus {
     Todo,
     Hold,
