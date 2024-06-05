@@ -1,12 +1,17 @@
 use uuid::Uuid;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::Display};
 use serde::{Serialize, Deserialize};
+use std::fmt;
+use crate::data::{Ticket, TicketDraft, TicketStatus, TicketTemplate, Errors};
 
-use crate::data::{Ticket, TicketDraft, TicketStatus};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct TicketId(Uuid);
 
+impl fmt::Display for TicketId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 // used as a database for all the tickets
 #[derive(Clone, Debug, Default)]
@@ -50,4 +55,16 @@ impl TicketStore {
         }
         tickets
     }
+
+    pub fn update_ticket(&mut self, ticket_id: TicketId, ticket_template: TicketTemplate) -> Result<Ticket, Errors> {
+        match self.tickets.get_mut(&ticket_id) {
+            Some(t) => {
+                t.title = ticket_template.title.unwrap_or(t.title.clone());
+                t.description = ticket_template.description.unwrap_or(t.description.clone());
+                t.status = ticket_template.status.unwrap_or(t.status);
+                Ok(t.clone())
+            },
+            _ => Err(Errors::UpdateError),
+        }
+    }   
 }

@@ -1,3 +1,5 @@
+use std::default;
+
 use crate::store::TicketId;
 
 use serde::{Serialize, Deserialize};
@@ -16,6 +18,11 @@ pub struct TicketDraft {
     pub description: TicketDescription
 }
 
+pub struct TicketTemplate {
+    pub title: Option<TicketTitle>,
+    pub description: Option<TicketDescription>,
+    pub status: Option<TicketStatus>
+}
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct TicketTitle(pub String);
 
@@ -23,7 +30,6 @@ pub struct TicketTitle(pub String);
 pub struct TicketDescription(pub String);
 
 // different states a ticket can be on
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum TicketStatus {
     Todo,
@@ -32,7 +38,7 @@ pub enum TicketStatus {
     Done,
 }
 
-// error information
+// error information for ticket content
 #[derive(Debug, thiserror::Error)]
 pub enum TicketContentError {
     #[error("the field cannot be empty")]
@@ -41,6 +47,17 @@ pub enum TicketContentError {
     TitleTooLong,
     #[error("the description cannot be longer than 500 bytes")]
     DescriptionTooLong
+}
+#[derive(Debug, thiserror::Error)]
+pub enum Errors {
+    #[error("Failed to get the value")]
+    GetError,
+    #[error("Failed to create the value")]
+    CreateError,
+    #[error("Failed to update the value")]
+    UpdateError,
+    #[error("Status is unparseable")]
+    StatusUnParseable,
 }
 
 impl TryFrom<String> for TicketTitle {
@@ -103,5 +120,15 @@ fn validate_description(description: &str) -> Result<(), TicketContentError> {
     }
     else {
         Ok(())
+    }
+}
+
+pub fn identify_status(status: String) -> Result<TicketStatus, Errors> {
+    match status.to_lowercase().as_str() {
+        "todo" => Ok(TicketStatus::Todo),
+        "inprogress" => Ok(TicketStatus::InProgress),
+        "done" => Ok(TicketStatus::Done),
+        "hold" => Ok(TicketStatus::Hold),
+        _ => Err(Errors::StatusUnParseable)
     }
 }
